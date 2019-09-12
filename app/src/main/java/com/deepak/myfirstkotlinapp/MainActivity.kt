@@ -1,6 +1,9 @@
 package com.deepak.myfirstkotlinapp
 
+import android.app.AlertDialog
+import android.app.Dialog
 import android.content.Context
+import android.content.DialogInterface
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.os.PersistableBundle
@@ -8,6 +11,7 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.DialogFragment
 
 class MainActivity : AppCompatActivity() {
     lateinit var tapMe: Button
@@ -29,7 +33,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         context = this
         setContentView(R.layout.activity_main)
         tapMe = findViewById(R.id.tapMeBtn)
@@ -130,6 +133,29 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    private fun showDialog() {
+        var builder = AlertDialog.Builder(context)
+        builder.setTitle("Close Time Attack")
+        builder.setPositiveButton("Yes") { dialogInterface, which ->
+            finish()
+        }
+        //performing cancel action
+        builder.setNeutralButton("Cancel") { dialogInterface, which ->
 
+        }
+        // Create the AlertDialog
+        val alertDialog: AlertDialog = builder.create()
+        // Set other dialog properties
+        alertDialog.setCancelable(false)
+        alertDialog.show()
+
+
+    }
+
+    override fun onBackPressed() {
+
+        showDialog()
+    //    super.onBackPressed()
+    }
 }
 
