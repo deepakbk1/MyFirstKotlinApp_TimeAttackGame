@@ -3,6 +3,7 @@ package com.deepak.myfirstkotlinapp
 import android.content.Context
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.os.PersistableBundle
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -19,22 +20,67 @@ class MainActivity : AppCompatActivity() {
     internal var countDownValue: Long = 1000
     lateinit var context: Context
     internal var gameStart = false
+    internal var timeLeftOnTimer: Long = 10000
+
+    companion object {
+        private val SCORE_KEY = "SCORE KEY"
+        private val TIME_LEFT_KEY = "TIME_LEFT_KEY"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         context = this
         setContentView(R.layout.activity_main)
         tapMe = findViewById(R.id.tapMeBtn)
         resetGame = findViewById(R.id.resetGame)
-
         currentScr = findViewById(R.id.currentScore)
         timeRemaining = findViewById(R.id.timeLeft)
-        resetGame()
+        if (savedInstanceState != null) {
+            score = savedInstanceState.getInt(SCORE_KEY)
+            timeLeftOnTimer = savedInstanceState.getLong(TIME_LEFT_KEY)
+            restoreGame()
+        } else {
+            resetGame()
+        }
+
         tapMe.setOnClickListener {
             currentScr.text = incrementScore()
         }
         resetGame.setOnClickListener {
             resetGame()
         }
+    }
+
+    private fun restoreGame() {
+        currentScr.text = "Your Current Score : $score"
+        val timeLeft = timeLeftOnTimer / 1000
+        timeRemaining.text = "Time Left : $timeLeft"
+        countDownTimer = object : CountDownTimer(timeLeftOnTimer, countDownValue) {
+            override fun onTick(milisecUnitFinished: Long) {
+                timeLeftOnTimer = milisecUnitFinished
+                val timeLeft = milisecUnitFinished / 1000
+                timeRemaining.text = "Time Left : $timeLeft"
+            }
+
+            override fun onFinish() {
+                endGame()
+            }
+        }
+        countDownTimer.start()
+        gameStart = true
+
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(
+            SCORE_KEY,
+            currentScr.text.toString().removePrefix("Your Current Score : ").toInt()
+        )
+        outState.putLong(TIME_LEFT_KEY, timeLeftOnTimer)
+        countDownTimer.cancel()
+
     }
 
     private fun resetGame() {
@@ -47,23 +93,27 @@ class MainActivity : AppCompatActivity() {
         timeRemaining.text = "Time Left : $timeLeft"
         countDownTimer = object : CountDownTimer(initialTime, countDownValue) {
             override fun onTick(milisecUnitFinished: Long) {
+                timeLeftOnTimer = milisecUnitFinished
                 val timeLeft = milisecUnitFinished / 1000
                 timeRemaining.text = "Time Left : $timeLeft"
             }
 
             override fun onFinish() {
-                Toast.makeText(
-                    context,
-                    "Your Final Score : ${currentScr.text.removePrefix("Your Current Score : ")}",
-                    Toast.LENGTH_LONG
-                )
-                    .show()
-                resetGame.isEnabled = true
-                tapMe.isEnabled = false
+                endGame()
             }
 
         }
         gameStart = false
+    }
+
+    private fun endGame() {
+        Toast.makeText(
+            context,
+            "Your Final Score : ${currentScr.text.removePrefix("Your Current Score : ")}",
+            Toast.LENGTH_LONG
+        )
+            .show()
+        resetGame()
     }
 
     private fun gameStart() {
@@ -80,9 +130,6 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    override fun onBackPressed() {
-        super.onBackPressed()
-    }
 
 }
 
